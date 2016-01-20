@@ -2,17 +2,19 @@
 using System.Collections;
 
 public class pullLever : MonoBehaviour {
-
     private GameObject[] reels;
-    private int maxForce = 100;
-    private int minForce = 20;
-    private int maxVelocity = 800;
-    private int minVelocity = 200;
+    private int maxForce = 50;
+    private int minForce = 50;
+    private int maxVelocity = 500;
+    private int minVelocity = 500;
     //all the above control randomness & feel of slot results
+    private int coins = 10;
+    private UnityEngine.UI.Text coinText;
+    private UnityEngine.UI.Text winText;
     private int slotDivisions = 2;
+    private stateTypes curState = stateTypes.READY; 
     private resultTypes[] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
-
-    private bool justSpun;
+    private float[] results;//gives the sectors of each reel for calculating results
 
     enum resultTypes
     {
@@ -21,67 +23,150 @@ public class pullLever : MonoBehaviour {
         GOLD,
         MELON
     }
+
+    enum stateTypes
+    {
+        READY,
+        PAUSE,
+        SPINNING,
+        FIRSTSTOPPED,
+        SECONDSTOPPED,
+        ALLSTOPPED
+    }
     // Use this for initialization
     void Start () {
         reels = new GameObject[3];
-        reels[0] = GameObject.Find("leftReel");
+        reels[0] = GameObject.Find("topReel");
         reels[1] = GameObject.Find("centerReel");
-        reels[2] = GameObject.Find("rightReel");
-        justSpun = false;
-        slotList = new resultTypes[2];
+        reels[2] = GameObject.Find("bottomReel");
+        slotList = new resultTypes[4];
         slotList[0] = resultTypes.CHERRY;
         slotList[1] = resultTypes.GOLD;
         slotList[2] = resultTypes.SEVEN;
         slotList[3] = resultTypes.MELON;
+        results = new float[3];
+        GameObject coinDisplay = GameObject.Find("cashCounter");
+        coinText = coinDisplay.GetComponent<UnityEngine.UI.Text>();
+        GameObject winDisplay = GameObject.Find("victoryText");
+        winText = winDisplay.GetComponent<UnityEngine.UI.Text>();
+        coinText.text = "Coins: " + coins;
+        winText.text = "";
     }
 	
 	// Update is called once per frame
 	void Update () {
-        Rigidbody curBody;
+        coinText.text = "Coins: " + coins;
+        HingeJoint curJoint;
         bool hasStopped = true;
-        if(justSpun)
+        if(curState == stateTypes.ALLSTOPPED)
         {
             for(int i = 0; i < 3; i++)
             {
-                curBody = reels[i].GetComponent<Rigidbody>();
-                if (curBody.angularVelocity.y > 0) hasStopped = false;
+                curJoint = reels[i].GetComponent<HingeJoint>();
+
+                if (curJoint.velocity > 0) hasStopped = false;
             }
             if (hasStopped)
             {
-                justSpun = false;
                 //and check for a win
                 CheckSlots();
+                curState = stateTypes.READY;
             }
-            //test current speed of objects
         }
     }
 
     void CheckSlots()
     {
-        Transform curTransform;
-        Vector3 curEuler;
-        float theta;
-        int curSector = 0;
         for (int i = 0; i < 3; i++)
         {
-            curTransform = reels[i].GetComponent<Transform>();
-            //curTransform.rotation.ToAngleAxis();
-            curEuler = curTransform.right;
-            theta = Mathf.Atan2(curEuler.y, curEuler.z);
-            if (theta < 0) theta = (Mathf.PI * 2) + theta;
-            curSector = Mathf.FloorToInt(slotDivisions * (theta / (Mathf.PI * 2)));
-            //print("Reel " + i + " at " + theta + " radians (" + (theta / (Mathf.PI * 2)) * 360 + " degrees) relative to x axis.");
-            print("Reel " + i + " in sector " + curSector);
+            print("Reel " + i + " in sector " + results[i]);
+
+            //sector determined, we can work out the sectors on either side with a simple +/- 1 % sectors & test for < 0
+
+        }
+        if(results[0] == results[1] && results[1] == results[2])
+        {
+            coins += 10;
+            winText.text = "WIN!";
+            StartCoroutine("wipeText");
+            //print("WIN!");
+        }
+        else
+        {
+            //print("lose...");
+        }
+        //bring up win screen on match-3
+    }
+
+    IEnumerator wipeText()
+    {
+        yield return new WaitForSeconds(1);
+        winText.text = "";
+    }
+
+    void stopMotor(GameObject toStop)
+    {
+        HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
+        JointSpring curSpring = curHinge.spring;
+        curHinge.useMotor = false;
+        curSpring.spring = 0;
+        curHinge.spring = curSpring;
+        curState = stateTypes.PAUSE;
+        StartCoroutine("snapOnStop", toStop);
+    }
+
+    IEnumerator snapOnStop(GameObject toStop)
+    {
+        HingeJoint joint = toStop.GetComponent<HingeJoint>();
+        Transform transform = toStop.GetComponent<Transform>();
+        while (joint.velocity > 0.5) yield return null;//wait until stop
+        int springSector = Mathf.FloorToInt((transform.localEulerAngles.y / 360) * slotDivisions);
+        float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
+        //snap to targetPosition
+        transform.Rotate(new Vector3(0,targetPosition - transform.localEulerAngles.y, 0));
+        yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
+        if (joint == reels[0].GetComponent<HingeJoint>())
+        {
+            curState = stateTypes.FIRSTSTOPPED;
+            results[0] = springSector;
+        }
+        else if (joint == reels[1].GetComponent<HingeJoint>())
+        {
+            curState = stateTypes.SECONDSTOPPED;
+            results[1] = springSector;
+        }
+        else if (joint == reels[2].GetComponent<HingeJoint>())
+        {
+            curState = stateTypes.ALLSTOPPED;
+            results[2] = springSector;
         }
     }
 
     void OnMouseDown()
     {
-        StartCoroutine("spinReels");
+        if (curState == stateTypes.READY)
+        {
+            coins -= 1;
+            StartCoroutine("spinReels");
+        }
+        else if (curState == stateTypes.SPINNING)
+        {
+            stopMotor(reels[0]);
+        }
+        else if (curState == stateTypes.FIRSTSTOPPED)
+        {
+            stopMotor(reels[1]);
+        }
+        else if (curState == stateTypes.SECONDSTOPPED)
+        {
+            stopMotor(reels[2]);
+        }
     }
 
     IEnumerator spinReels()
     {
+        curState = stateTypes.PAUSE;//i.e. getting ready to spin
+        winText.text = "";
         HingeJoint curHinge;
         JointMotor curMotor;
 
@@ -92,15 +177,10 @@ public class pullLever : MonoBehaviour {
             curMotor.force = minForce + (Random.value * (maxForce - minForce));
             curMotor.targetVelocity = minVelocity + (Random.value * (maxVelocity - minVelocity));
             curHinge.motor = curMotor;
-            //ensures different rates of rotation, creating a more interesting slot machine
+            //randomness ensures different rates of rotation, creating a more interesting slot machine
             curHinge.useMotor = true;
         }
-        yield return new WaitForSeconds(2);//let the motor get up to speed
-        justSpun = true;
-        for(int i = 0; i < 3; i++)//slow reels to halt
-        {
-            curHinge = reels[i].GetComponent<HingeJoint>();
-            curHinge.useMotor = false;
-        }
+        yield return new WaitForSeconds(0.5f);//let the motor get up to speed
+        curState = stateTypes.SPINNING;
     }
 }
