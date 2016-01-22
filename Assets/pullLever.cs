@@ -11,17 +11,19 @@ public class pullLever : MonoBehaviour {
     private int coins = 10;
     private UnityEngine.UI.Text coinText;
     private UnityEngine.UI.Text winText;
-    private int slotDivisions = 2;
-    private stateTypes curState = stateTypes.READY; 
-    private resultTypes[] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
-    private float[] results;//gives the sectors of each reel for calculating results
+    private int slotDivisions = 4;
+    private stateTypes curState = stateTypes.READY;
+    private int[] resultWinnings;//how many coins you win for each resultType
+    private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
+    private int[] results;//gives the sectors of each reel for calculating results
 
     enum resultTypes
     {
         CHERRY,
         SEVEN,
         GOLD,
-        MELON
+        MELON,
+        TYPES
     }
 
     enum stateTypes
@@ -33,18 +35,41 @@ public class pullLever : MonoBehaviour {
         SECONDSTOPPED,
         ALLSTOPPED
     }
+
     // Use this for initialization
     void Start () {
+        GameObject menu = GameObject.Find("menuPanel");
+        menu.SetActive(false);
+
         reels = new GameObject[3];
         reels[0] = GameObject.Find("topReel");
         reels[1] = GameObject.Find("centerReel");
         reels[2] = GameObject.Find("bottomReel");
-        slotList = new resultTypes[4];
-        slotList[0] = resultTypes.CHERRY;
-        slotList[1] = resultTypes.GOLD;
-        slotList[2] = resultTypes.SEVEN;
-        slotList[3] = resultTypes.MELON;
-        results = new float[3];
+        slotList = new resultTypes[3, slotDivisions];
+
+        slotList[0,0] = resultTypes.CHERRY;
+        slotList[0,1] = resultTypes.GOLD;
+        slotList[0,2] = resultTypes.SEVEN;
+        slotList[0,3] = resultTypes.MELON;
+
+        slotList[1, 0] = resultTypes.MELON;
+        slotList[1, 1] = resultTypes.GOLD;
+        slotList[1, 2] = resultTypes.SEVEN;
+        slotList[1, 3] = resultTypes.CHERRY;
+
+        slotList[2, 0] = resultTypes.MELON;
+        slotList[2, 1] = resultTypes.GOLD;
+        slotList[2, 2] = resultTypes.SEVEN;
+        slotList[2, 3] = resultTypes.CHERRY;
+
+        resultWinnings = new int[(int)resultTypes.TYPES];
+
+        resultWinnings[(int)resultTypes.CHERRY] = 5;
+        resultWinnings[(int)resultTypes.SEVEN] = 20;
+        resultWinnings[(int)resultTypes.GOLD] = 10;
+        resultWinnings[(int)resultTypes.MELON] = 2;
+
+        results = new int[3];
         GameObject coinDisplay = GameObject.Find("cashCounter");
         coinText = coinDisplay.GetComponent<UnityEngine.UI.Text>();
         GameObject winDisplay = GameObject.Find("victoryText");
@@ -79,14 +104,14 @@ public class pullLever : MonoBehaviour {
     {
         for (int i = 0; i < 3; i++)
         {
-            print("Reel " + i + " in sector " + results[i]);
-
+            //print("Reel " + i + " in sector " + results[i]);
+            print("Reel " + i + " has enum value " + slotList[i, results[i]]);
             //sector determined, we can work out the sectors on either side with a simple +/- 1 % sectors & test for < 0
 
         }
-        if(results[0] == results[1] && results[1] == results[2])
+        if(slotList[0,results[0]] == slotList[1, results[1]] && slotList[1, results[1]] == slotList[2, results[2]])
         {
-            coins += 10;
+            coins += resultWinnings[(int)slotList[0,results[0]]];
             winText.text = "WIN!";
             StartCoroutine("wipeText");
             //print("WIN!");
