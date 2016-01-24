@@ -1,8 +1,8 @@
 #unity safeness
 */.vs
 */.suo
-Library/
-Temp/
+*/Library/
+*/Temp/
 */assetDatabase3
 
 
