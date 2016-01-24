@@ -1,9 +1,8 @@
 #unity safeness
 */.vs
 */.suo
-*/Library/
-*/Temp/
-*/assetDatabase3
+/Library/
+/Temp/
 
 
 # Windows image file caches
