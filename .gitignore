@@ -1,8 +1,10 @@
 #unity safeness
 */.vs
 */.suo
-/Library/
-/Temp/
+*/.sln
+*/.csproj
+Library/
+Temp/
 
 
 # Windows image file caches
