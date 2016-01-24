@@ -1,3 +1,11 @@
+#unity safeness
+*/.vs
+*/.suo
+Library/*
+Temp/
+*/assetDatabase3
+
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
