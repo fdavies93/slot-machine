@@ -2,27 +2,35 @@
 using System.Collections;
 
 public class pullLever : MonoBehaviour {
-    private GameObject[] reels;
+    public GameObject[] reels;
     private int maxForce = 50;
     private int minForce = 50;
     private int maxVelocity = 500;
     private int minVelocity = 500;
     //all the above control randomness & feel of slot results
-    private int coins = 10;
+    public int coins = 10;
+    public int nudges = 100;
+    public int nudgesUsed = 0;
+    public int maxNudges = 3;
     private UnityEngine.UI.Text coinText;
+    private UnityEngine.UI.Text nudgeText;
     private UnityEngine.UI.Text winText;
-    private int slotDivisions = 4;
+    public int slotDivisions = 16;
     private stateTypes curState = stateTypes.READY;
     private int[] resultWinnings;//how many coins you win for each resultType
     private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
-    private int[] results;//gives the sectors of each reel for calculating results
+    public int[] results;//gives the sectors of each reel for calculating results
 
     enum resultTypes
     {
-        CHERRY,
-        SEVEN,
-        GOLD,
-        MELON,
+        KARATE,
+        DARTHVADER,
+        STORMTROOPER,
+        NINJA,
+        BATMAN,
+        COWBOY,
+        PIRATE,
+        ROBIN,
         TYPES
     }
 
@@ -47,40 +55,84 @@ public class pullLever : MonoBehaviour {
         reels[2] = GameObject.Find("bottomReel");
         slotList = new resultTypes[3, slotDivisions];
 
-        slotList[0,0] = resultTypes.CHERRY;
-        slotList[0,1] = resultTypes.GOLD;
-        slotList[0,2] = resultTypes.SEVEN;
-        slotList[0,3] = resultTypes.MELON;
+        slotList[0,15] = resultTypes.PIRATE;
+        slotList[0,0] = resultTypes.ROBIN;
+        slotList[0,1] = resultTypes.PIRATE;
+        slotList[0,2] = resultTypes.STORMTROOPER;
+        slotList[0, 3] = resultTypes.KARATE;
+        slotList[0, 4] = resultTypes.NINJA;
+        slotList[0, 5] = resultTypes.ROBIN;
+        slotList[0, 6] = resultTypes.PIRATE;
+        slotList[0, 7] = resultTypes.ROBIN;
+        slotList[0, 8] = resultTypes.DARTHVADER;
+        slotList[0, 9] = resultTypes.BATMAN;
+        slotList[0, 10] = resultTypes.COWBOY;
+        slotList[0, 11] = resultTypes.STORMTROOPER;
+        slotList[0, 12] = resultTypes.NINJA;
+        slotList[0, 13] = resultTypes.BATMAN;
+        slotList[0, 14] = resultTypes.COWBOY;
 
-        slotList[1, 0] = resultTypes.MELON;
-        slotList[1, 1] = resultTypes.GOLD;
-        slotList[1, 2] = resultTypes.SEVEN;
-        slotList[1, 3] = resultTypes.CHERRY;
+        slotList[1, 15] = resultTypes.PIRATE;
+        slotList[1, 0] = resultTypes.PIRATE;
+        slotList[1, 1] = resultTypes.COWBOY;
+        slotList[1, 2] = resultTypes.NINJA;
+        slotList[1, 3] = resultTypes.ROBIN;
+        slotList[1, 4] = resultTypes.COWBOY;
+        slotList[1, 5] = resultTypes.ROBIN;
+        slotList[1, 6] = resultTypes.BATMAN;
+        slotList[1, 7] = resultTypes.STORMTROOPER;
+        slotList[1, 8] = resultTypes.PIRATE;
+        slotList[1, 9] = resultTypes.ROBIN;
+        slotList[1, 10] = resultTypes.NINJA;
+        slotList[1, 11] = resultTypes.STORMTROOPER;
+        slotList[1, 12] = resultTypes.BATMAN;
+        slotList[1, 13] = resultTypes.KARATE;
+        slotList[1, 14] = resultTypes.DARTHVADER;
 
-        slotList[2, 0] = resultTypes.MELON;
-        slotList[2, 1] = resultTypes.GOLD;
-        slotList[2, 2] = resultTypes.SEVEN;
-        slotList[2, 3] = resultTypes.CHERRY;
+        slotList[2, 15] = resultTypes.COWBOY;
+        slotList[2, 0] = resultTypes.BATMAN;
+        slotList[2, 1] = resultTypes.KARATE;
+        slotList[2, 2] = resultTypes.COWBOY;
+        slotList[2, 3] = resultTypes.BATMAN;
+        slotList[2, 4] = resultTypes.ROBIN;
+        slotList[2, 5] = resultTypes.PIRATE;
+        slotList[2, 6] = resultTypes.NINJA;
+        slotList[2, 7] = resultTypes.STORMTROOPER;
+        slotList[2, 8] = resultTypes.PIRATE;
+        slotList[2, 9] = resultTypes.ROBIN;
+        slotList[2, 10] = resultTypes.NINJA;
+        slotList[2, 11] = resultTypes.STORMTROOPER;
+        slotList[2, 12] = resultTypes.PIRATE;
+        slotList[2, 13] = resultTypes.DARTHVADER;
+        slotList[2, 14] = resultTypes.ROBIN;
 
         resultWinnings = new int[(int)resultTypes.TYPES];
 
-        resultWinnings[(int)resultTypes.CHERRY] = 5;
-        resultWinnings[(int)resultTypes.SEVEN] = 20;
-        resultWinnings[(int)resultTypes.GOLD] = 10;
-        resultWinnings[(int)resultTypes.MELON] = 2;
+        resultWinnings[(int)resultTypes.KARATE] = 5;
+        resultWinnings[(int)resultTypes.DARTHVADER] = 20;
+        resultWinnings[(int)resultTypes.STORMTROOPER] = 10;
+        resultWinnings[(int)resultTypes.NINJA] = 2;
+        resultWinnings[(int)resultTypes.BATMAN] = 2;
+        resultWinnings[(int)resultTypes.COWBOY] = 2;
+        resultWinnings[(int)resultTypes.PIRATE] = 2;
+        resultWinnings[(int)resultTypes.ROBIN] = 2;
 
         results = new int[3];
         GameObject coinDisplay = GameObject.Find("cashCounter");
         coinText = coinDisplay.GetComponent<UnityEngine.UI.Text>();
         GameObject winDisplay = GameObject.Find("victoryText");
         winText = winDisplay.GetComponent<UnityEngine.UI.Text>();
+        GameObject nudgeDisplay = GameObject.Find("nudgeCounter");
+        nudgeText = nudgeDisplay.GetComponent<UnityEngine.UI.Text>();
         coinText.text = "Coins: " + coins;
         winText.text = "";
+        nudgeText.text = "Nudges: " + nudges;
     }
 	
 	// Update is called once per frame
 	void Update () {
         coinText.text = "Coins: " + coins;
+        nudgeText.text = "Nudges: " + nudges;
         HingeJoint curJoint;
         bool hasStopped = true;
         if(curState == stateTypes.ALLSTOPPED)
@@ -100,12 +152,12 @@ public class pullLever : MonoBehaviour {
         }
     }
 
-    void CheckSlots()
+    public void CheckSlots()
     {
         for (int i = 0; i < 3; i++)
         {
             //print("Reel " + i + " in sector " + results[i]);
-            print("Reel " + i + " has enum value " + slotList[i, results[i]]);
+            //print("Reel " + i + " has enum value " + slotList[i, results[i]]);
             //sector determined, we can work out the sectors on either side with a simple +/- 1 % sectors & test for < 0
 
         }
@@ -140,15 +192,15 @@ public class pullLever : MonoBehaviour {
         StartCoroutine("snapOnStop", toStop);
     }
 
-    IEnumerator snapOnStop(GameObject toStop)
+    public IEnumerator snapOnStop(GameObject toStop)
     {
         HingeJoint joint = toStop.GetComponent<HingeJoint>();
         Transform transform = toStop.GetComponent<Transform>();
         while (joint.velocity > 0.5) yield return null;//wait until stop
-        int springSector = Mathf.FloorToInt((transform.localEulerAngles.y / 360) * slotDivisions);
+        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360) * slotDivisions);
         float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
         //snap to targetPosition
-        transform.Rotate(new Vector3(0,targetPosition - transform.localEulerAngles.y, 0));
+        transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
         {
@@ -172,6 +224,7 @@ public class pullLever : MonoBehaviour {
         if (curState == stateTypes.READY)
         {
             coins -= 1;
+            nudgesUsed = 0;
             StartCoroutine("spinReels");
         }
         else if (curState == stateTypes.SPINNING)

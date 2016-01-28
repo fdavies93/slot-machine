@@ -1,8 +1,8 @@
 #unity safeness
 */.vs
-*/.suo
-*/.sln
-*/.csproj
+*.suo
+*.sln
+*.csproj
 Library/
 Temp/
 
