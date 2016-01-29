@@ -2,11 +2,21 @@
 using System.Collections;
 
 public class pullLever : MonoBehaviour {
+    //because of serialisation, basically all public variables are static
     public GameObject[] reels;
-    private int maxForce = 50;
-    private int minForce = 50;
-    private int maxVelocity = 500;
-    private int minVelocity = 500;
+    public int hasteFactor = 2;
+    public int slowFactor = 2;
+    public int crazyFactor = 2;
+    public int maximumForce = 10;
+    public int minimumForce = 10;
+    public int maximumVelocity = 50;
+    public int minimumVelocity = 50;
+
+    //these are for actually manipulating in run time
+    private int maxForce;
+    private int minForce;
+    private int maxVelocity;
+    private int minVelocity;
     //all the above control randomness & feel of slot results
     public int coins = 10;
     public int nudges = 100;
@@ -20,6 +30,7 @@ public class pullLever : MonoBehaviour {
     private int[] resultWinnings;//how many coins you win for each resultType
     private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
     public int[] results;//gives the sectors of each reel for calculating results
+    private bool[] activeFlags;
 
     enum resultTypes
     {
@@ -44,6 +55,16 @@ public class pullLever : MonoBehaviour {
         ALLSTOPPED
     }
 
+    enum modifierTypes
+    {
+        SLOWREELS,//reels go slower; some cost
+        FASTREELS,//reels go faster; no cost
+        GOLDREELS,//only need 2 reels to win
+        THREEROWS,//the rows to either side of the center also count; probably 2 coin cost
+        CRAZYREELS,//multiplies range of force + velocity; no cost
+        TYPES
+    }
+
     // Use this for initialization
     void Start () {
         GameObject menu = GameObject.Find("menuPanel");
@@ -55,6 +76,8 @@ public class pullLever : MonoBehaviour {
         reels[2] = GameObject.Find("bottomReel");
         slotList = new resultTypes[3, slotDivisions];
 
+        //this is bad, but it seemed pointless to put this in data when unity
+        //doesn't have a firm division of code + data anyway
         slotList[0,15] = resultTypes.PIRATE;
         slotList[0,0] = resultTypes.ROBIN;
         slotList[0,1] = resultTypes.PIRATE;
@@ -127,6 +150,15 @@ public class pullLever : MonoBehaviour {
         coinText.text = "Coins: " + coins;
         winText.text = "";
         nudgeText.text = "Nudges: " + nudges;
+        activeFlags = new bool[(int)modifierTypes.TYPES];
+        //activeFlags[(int)modifierTypes.FASTREELS] = true;
+        //activeFlags[(int)modifierTypes.THREEROWS] = true;
+        //activeFlags[(int)modifierTypes.GOLDREELS] = true;
+        activeFlags[(int)modifierTypes.CRAZYREELS] = true;
+        maxForce = maximumForce;
+        minForce = minimumForce;
+        maxVelocity = maximumVelocity;
+        minVelocity = minimumVelocity;
     }
 	
 	// Update is called once per frame
@@ -151,27 +183,59 @@ public class pullLever : MonoBehaviour {
             }
         }
     }
-
-    public void CheckSlots()
+    
+    void checkRow(int[] resultArray)
     {
-        for (int i = 0; i < 3; i++)
+        if (activeFlags[(int)modifierTypes.GOLDREELS])
         {
-            //print("Reel " + i + " in sector " + results[i]);
-            //print("Reel " + i + " has enum value " + slotList[i, results[i]]);
-            //sector determined, we can work out the sectors on either side with a simple +/- 1 % sectors & test for < 0
-
-        }
-        if(slotList[0,results[0]] == slotList[1, results[1]] && slotList[1, results[1]] == slotList[2, results[2]])
-        {
-            coins += resultWinnings[(int)slotList[0,results[0]]];
-            winText.text = "WIN!";
-            StartCoroutine("wipeText");
-            //print("WIN!");
+            bool stop = false;
+            for(int i = 0; i < 2; ++i)
+            {
+                for(int i2 = i+1; i2 < 3; ++i2)
+                {
+                    if((slotList[i, resultArray[i]] == slotList[i2, resultArray[i2]]))
+                    {
+                        print("win on " +i+ " and " +i2);
+                        coins += resultWinnings[(int)slotList[i, resultArray[i]]];
+                        winText.text = "WIN!";
+                        nudges = 0;
+                        StartCoroutine("wipeText");
+                        stop = true;
+                        break;
+                    }
+                }
+                if (stop) break;
+            }
         }
         else
         {
-            //print("lose...");
+            if (slotList[0, resultArray[0]] == slotList[1, resultArray[1]] && slotList[1, resultArray[1]] == slotList[2, resultArray[2]])
+            {
+                coins += resultWinnings[(int)slotList[0, resultArray[0]]];
+                winText.text = "WIN!";
+                nudges = 0;
+                StartCoroutine("wipeText");
+            }
         }
+    }
+
+    public void CheckSlots()
+    {
+        checkRow(results);
+        if(activeFlags[(int)modifierTypes.THREEROWS])
+        {
+            print("three rows");
+            int[] tempResults = new int[3];
+            for(int i = 0; i < 3; ++i)
+            {
+                tempResults[i] = results[i] - 1;
+                if (tempResults[i] < 0) tempResults[i] = slotDivisions + tempResults[i];
+            }
+            checkRow(tempResults);
+            for(int i = 0; i < 3; ++i) tempResults[i] = (results[i] + 1) % slotDivisions;
+            checkRow(tempResults);
+        }
+            //print("lose...");
         //bring up win screen on match-3
     }
 
@@ -215,6 +279,10 @@ public class pullLever : MonoBehaviour {
         else if (joint == reels[2].GetComponent<HingeJoint>())
         {
             curState = stateTypes.ALLSTOPPED;
+            maxForce = maximumForce;
+            maxVelocity = maximumVelocity;
+            minForce = minimumForce;
+            minVelocity = minimumVelocity;
             results[2] = springSector;
         }
     }
@@ -224,7 +292,12 @@ public class pullLever : MonoBehaviour {
         if (curState == stateTypes.READY)
         {
             coins -= 1;
-            nudgesUsed = 0;
+            nudges = 0;
+            /*for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            {
+                activeFlags[i] = false;
+            }*/
+            //open shop
             StartCoroutine("spinReels");
         }
         else if (curState == stateTypes.SPINNING)
@@ -247,7 +320,28 @@ public class pullLever : MonoBehaviour {
         winText.text = "";
         HingeJoint curHinge;
         JointMotor curMotor;
-
+        if(activeFlags[(int)modifierTypes.SLOWREELS])
+        {
+            minForce /= slowFactor;
+            maxForce /= slowFactor;
+            minVelocity /= slowFactor;
+            maxVelocity /= slowFactor;
+        }
+        if(activeFlags[(int)modifierTypes.FASTREELS])
+        {
+            minForce *= hasteFactor;
+            maxForce *= hasteFactor;
+            minVelocity *= hasteFactor;
+            maxVelocity *= hasteFactor;
+        }
+        if(activeFlags[(int)modifierTypes.CRAZYREELS])
+        {
+            minForce /= crazyFactor;
+            maxForce *= crazyFactor;
+            minVelocity /= crazyFactor;
+            maxVelocity *= crazyFactor;
+        }
+        print("maxVelocity: " + maxVelocity);
         for(int i = 0; i < 3; i++)//get reels up to speed
         {
             curHinge = reels[i].GetComponent<HingeJoint>();

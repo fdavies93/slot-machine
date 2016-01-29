@@ -33,7 +33,6 @@ public class reelScript : MonoBehaviour {
                 }
                 script.results[curReel] = (script.results[curReel] + 1) % script.slotDivisions;
                 script.nudges -= 1;
-                //script.nudgesUsed += 1;
                 script.CheckSlots();
             }
         }
