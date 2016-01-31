@@ -2,27 +2,46 @@
 using System.Collections;
 
 public class pullLever : MonoBehaviour {
-    private GameObject[] reels;
-    private int maxForce = 50;
-    private int minForce = 50;
-    private int maxVelocity = 500;
-    private int minVelocity = 500;
+    //because of serialisation, basically all public variables are static
+    public GameObject[] reels;
+    public int hasteFactor = 2;
+    public int slowFactor = 2;
+    public int crazyFactor = 2;
+    public int maximumForce = 10;
+    public int minimumForce = 10;
+    public int maximumVelocity = 50;
+    public int minimumVelocity = 50;
+
+    //these are for actually manipulating in run time
+    private int maxForce;
+    private int minForce;
+    private int maxVelocity;
+    private int minVelocity;
     //all the above control randomness & feel of slot results
-    private int coins = 10;
+    public int coins = 10;
+    public int nudges = 100;
+    public int nudgesUsed = 0;
+    public int maxNudges = 3;
     private UnityEngine.UI.Text coinText;
+    private UnityEngine.UI.Text nudgeText;
     private UnityEngine.UI.Text winText;
-    private int slotDivisions = 4;
+    public int slotDivisions = 16;
     private stateTypes curState = stateTypes.READY;
     private int[] resultWinnings;//how many coins you win for each resultType
     private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
-    private int[] results;//gives the sectors of each reel for calculating results
+    public int[] results;//gives the sectors of each reel for calculating results
+    private bool[] activeFlags;
 
     enum resultTypes
     {
-        CHERRY,
-        SEVEN,
-        GOLD,
-        MELON,
+        KARATE,
+        DARTHVADER,
+        STORMTROOPER,
+        NINJA,
+        BATMAN,
+        COWBOY,
+        PIRATE,
+        ROBIN,
         TYPES
     }
 
@@ -36,6 +55,16 @@ public class pullLever : MonoBehaviour {
         ALLSTOPPED
     }
 
+    enum modifierTypes
+    {
+        SLOWREELS,//reels go slower; some cost
+        FASTREELS,//reels go faster; no cost
+        GOLDREELS,//only need 2 reels to win
+        THREEROWS,//the rows to either side of the center also count; probably 2 coin cost
+        CRAZYREELS,//multiplies range of force + velocity; no cost
+        TYPES
+    }
+
     // Use this for initialization
     void Start () {
         GameObject menu = GameObject.Find("menuPanel");
@@ -47,40 +76,95 @@ public class pullLever : MonoBehaviour {
         reels[2] = GameObject.Find("bottomReel");
         slotList = new resultTypes[3, slotDivisions];
 
-        slotList[0,0] = resultTypes.CHERRY;
-        slotList[0,1] = resultTypes.GOLD;
-        slotList[0,2] = resultTypes.SEVEN;
-        slotList[0,3] = resultTypes.MELON;
+        //this is bad, but it seemed pointless to put this in data when unity
+        //doesn't have a firm division of code + data anyway
+        slotList[0,15] = resultTypes.PIRATE;
+        slotList[0,0] = resultTypes.ROBIN;
+        slotList[0,1] = resultTypes.PIRATE;
+        slotList[0,2] = resultTypes.STORMTROOPER;
+        slotList[0, 3] = resultTypes.KARATE;
+        slotList[0, 4] = resultTypes.NINJA;
+        slotList[0, 5] = resultTypes.ROBIN;
+        slotList[0, 6] = resultTypes.PIRATE;
+        slotList[0, 7] = resultTypes.ROBIN;
+        slotList[0, 8] = resultTypes.DARTHVADER;
+        slotList[0, 9] = resultTypes.BATMAN;
+        slotList[0, 10] = resultTypes.COWBOY;
+        slotList[0, 11] = resultTypes.STORMTROOPER;
+        slotList[0, 12] = resultTypes.NINJA;
+        slotList[0, 13] = resultTypes.BATMAN;
+        slotList[0, 14] = resultTypes.COWBOY;
 
-        slotList[1, 0] = resultTypes.MELON;
-        slotList[1, 1] = resultTypes.GOLD;
-        slotList[1, 2] = resultTypes.SEVEN;
-        slotList[1, 3] = resultTypes.CHERRY;
+        slotList[1, 15] = resultTypes.PIRATE;
+        slotList[1, 0] = resultTypes.PIRATE;
+        slotList[1, 1] = resultTypes.COWBOY;
+        slotList[1, 2] = resultTypes.NINJA;
+        slotList[1, 3] = resultTypes.ROBIN;
+        slotList[1, 4] = resultTypes.COWBOY;
+        slotList[1, 5] = resultTypes.ROBIN;
+        slotList[1, 6] = resultTypes.BATMAN;
+        slotList[1, 7] = resultTypes.STORMTROOPER;
+        slotList[1, 8] = resultTypes.PIRATE;
+        slotList[1, 9] = resultTypes.ROBIN;
+        slotList[1, 10] = resultTypes.NINJA;
+        slotList[1, 11] = resultTypes.STORMTROOPER;
+        slotList[1, 12] = resultTypes.BATMAN;
+        slotList[1, 13] = resultTypes.KARATE;
+        slotList[1, 14] = resultTypes.DARTHVADER;
 
-        slotList[2, 0] = resultTypes.MELON;
-        slotList[2, 1] = resultTypes.GOLD;
-        slotList[2, 2] = resultTypes.SEVEN;
-        slotList[2, 3] = resultTypes.CHERRY;
+        slotList[2, 15] = resultTypes.COWBOY;
+        slotList[2, 0] = resultTypes.BATMAN;
+        slotList[2, 1] = resultTypes.KARATE;
+        slotList[2, 2] = resultTypes.COWBOY;
+        slotList[2, 3] = resultTypes.BATMAN;
+        slotList[2, 4] = resultTypes.ROBIN;
+        slotList[2, 5] = resultTypes.PIRATE;
+        slotList[2, 6] = resultTypes.NINJA;
+        slotList[2, 7] = resultTypes.STORMTROOPER;
+        slotList[2, 8] = resultTypes.PIRATE;
+        slotList[2, 9] = resultTypes.ROBIN;
+        slotList[2, 10] = resultTypes.NINJA;
+        slotList[2, 11] = resultTypes.STORMTROOPER;
+        slotList[2, 12] = resultTypes.PIRATE;
+        slotList[2, 13] = resultTypes.DARTHVADER;
+        slotList[2, 14] = resultTypes.ROBIN;
 
         resultWinnings = new int[(int)resultTypes.TYPES];
 
-        resultWinnings[(int)resultTypes.CHERRY] = 5;
-        resultWinnings[(int)resultTypes.SEVEN] = 20;
-        resultWinnings[(int)resultTypes.GOLD] = 10;
-        resultWinnings[(int)resultTypes.MELON] = 2;
+        resultWinnings[(int)resultTypes.KARATE] = 5;
+        resultWinnings[(int)resultTypes.DARTHVADER] = 20;
+        resultWinnings[(int)resultTypes.STORMTROOPER] = 10;
+        resultWinnings[(int)resultTypes.NINJA] = 2;
+        resultWinnings[(int)resultTypes.BATMAN] = 2;
+        resultWinnings[(int)resultTypes.COWBOY] = 2;
+        resultWinnings[(int)resultTypes.PIRATE] = 2;
+        resultWinnings[(int)resultTypes.ROBIN] = 2;
 
         results = new int[3];
         GameObject coinDisplay = GameObject.Find("cashCounter");
         coinText = coinDisplay.GetComponent<UnityEngine.UI.Text>();
         GameObject winDisplay = GameObject.Find("victoryText");
         winText = winDisplay.GetComponent<UnityEngine.UI.Text>();
+        GameObject nudgeDisplay = GameObject.Find("nudgeCounter");
+        nudgeText = nudgeDisplay.GetComponent<UnityEngine.UI.Text>();
         coinText.text = "Coins: " + coins;
         winText.text = "";
+        nudgeText.text = "Nudges: " + nudges;
+        activeFlags = new bool[(int)modifierTypes.TYPES];
+        //activeFlags[(int)modifierTypes.FASTREELS] = true;
+        //activeFlags[(int)modifierTypes.THREEROWS] = true;
+        //activeFlags[(int)modifierTypes.GOLDREELS] = true;
+        activeFlags[(int)modifierTypes.CRAZYREELS] = true;
+        maxForce = maximumForce;
+        minForce = minimumForce;
+        maxVelocity = maximumVelocity;
+        minVelocity = minimumVelocity;
     }
 	
 	// Update is called once per frame
 	void Update () {
         coinText.text = "Coins: " + coins;
+        nudgeText.text = "Nudges: " + nudges;
         HingeJoint curJoint;
         bool hasStopped = true;
         if(curState == stateTypes.ALLSTOPPED)
@@ -99,27 +183,59 @@ public class pullLever : MonoBehaviour {
             }
         }
     }
-
-    void CheckSlots()
+    
+    void checkRow(int[] resultArray)
     {
-        for (int i = 0; i < 3; i++)
+        if (activeFlags[(int)modifierTypes.GOLDREELS])
         {
-            //print("Reel " + i + " in sector " + results[i]);
-            print("Reel " + i + " has enum value " + slotList[i, results[i]]);
-            //sector determined, we can work out the sectors on either side with a simple +/- 1 % sectors & test for < 0
-
-        }
-        if(slotList[0,results[0]] == slotList[1, results[1]] && slotList[1, results[1]] == slotList[2, results[2]])
-        {
-            coins += resultWinnings[(int)slotList[0,results[0]]];
-            winText.text = "WIN!";
-            StartCoroutine("wipeText");
-            //print("WIN!");
+            bool stop = false;
+            for(int i = 0; i < 2; ++i)
+            {
+                for(int i2 = i+1; i2 < 3; ++i2)
+                {
+                    if((slotList[i, resultArray[i]] == slotList[i2, resultArray[i2]]))
+                    {
+                        print("win on " +i+ " and " +i2);
+                        coins += resultWinnings[(int)slotList[i, resultArray[i]]];
+                        winText.text = "WIN!";
+                        nudges = 0;
+                        StartCoroutine("wipeText");
+                        stop = true;
+                        break;
+                    }
+                }
+                if (stop) break;
+            }
         }
         else
         {
-            //print("lose...");
+            if (slotList[0, resultArray[0]] == slotList[1, resultArray[1]] && slotList[1, resultArray[1]] == slotList[2, resultArray[2]])
+            {
+                coins += resultWinnings[(int)slotList[0, resultArray[0]]];
+                winText.text = "WIN!";
+                nudges = 0;
+                StartCoroutine("wipeText");
+            }
         }
+    }
+
+    public void CheckSlots()
+    {
+        checkRow(results);
+        if(activeFlags[(int)modifierTypes.THREEROWS])
+        {
+            print("three rows");
+            int[] tempResults = new int[3];
+            for(int i = 0; i < 3; ++i)
+            {
+                tempResults[i] = results[i] - 1;
+                if (tempResults[i] < 0) tempResults[i] = slotDivisions + tempResults[i];
+            }
+            checkRow(tempResults);
+            for(int i = 0; i < 3; ++i) tempResults[i] = (results[i] + 1) % slotDivisions;
+            checkRow(tempResults);
+        }
+            //print("lose...");
         //bring up win screen on match-3
     }
 
@@ -140,15 +256,15 @@ public class pullLever : MonoBehaviour {
         StartCoroutine("snapOnStop", toStop);
     }
 
-    IEnumerator snapOnStop(GameObject toStop)
+    public IEnumerator snapOnStop(GameObject toStop)
     {
         HingeJoint joint = toStop.GetComponent<HingeJoint>();
         Transform transform = toStop.GetComponent<Transform>();
         while (joint.velocity > 0.5) yield return null;//wait until stop
-        int springSector = Mathf.FloorToInt((transform.localEulerAngles.y / 360) * slotDivisions);
+        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360) * slotDivisions);
         float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
         //snap to targetPosition
-        transform.Rotate(new Vector3(0,targetPosition - transform.localEulerAngles.y, 0));
+        transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
         {
@@ -163,27 +279,46 @@ public class pullLever : MonoBehaviour {
         else if (joint == reels[2].GetComponent<HingeJoint>())
         {
             curState = stateTypes.ALLSTOPPED;
+            maxForce = maximumForce;
+            maxVelocity = maximumVelocity;
+            minForce = minimumForce;
+            minVelocity = minimumVelocity;
             results[2] = springSector;
         }
     }
 
     void OnMouseDown()
     {
+
+        AudioSource source = gameObject.GetComponent<AudioSource>();
+        AudioClip lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
+        AudioClip stop = Resources.Load<AudioClip>("sound/SE/stop");
         if (curState == stateTypes.READY)
         {
             coins -= 1;
+            nudges = 0;
+            source.PlayOneShot(lever);
+            /*for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            {
+                activeFlags[i] = false;
+            }*/
+            //open shop
             StartCoroutine("spinReels");
+            
         }
         else if (curState == stateTypes.SPINNING)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[0]);
         }
         else if (curState == stateTypes.FIRSTSTOPPED)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[1]);
         }
         else if (curState == stateTypes.SECONDSTOPPED)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[2]);
         }
     }
@@ -194,7 +329,28 @@ public class pullLever : MonoBehaviour {
         winText.text = "";
         HingeJoint curHinge;
         JointMotor curMotor;
-
+        if(activeFlags[(int)modifierTypes.SLOWREELS])
+        {
+            minForce /= slowFactor;
+            maxForce /= slowFactor;
+            minVelocity /= slowFactor;
+            maxVelocity /= slowFactor;
+        }
+        if(activeFlags[(int)modifierTypes.FASTREELS])
+        {
+            minForce *= hasteFactor;
+            maxForce *= hasteFactor;
+            minVelocity *= hasteFactor;
+            maxVelocity *= hasteFactor;
+        }
+        if(activeFlags[(int)modifierTypes.CRAZYREELS])
+        {
+            minForce /= crazyFactor;
+            maxForce *= crazyFactor;
+            minVelocity /= crazyFactor;
+            maxVelocity *= crazyFactor;
+        }
+        print("maxVelocity: " + maxVelocity);
         for(int i = 0; i < 3; i++)//get reels up to speed
         {
             curHinge = reels[i].GetComponent<HingeJoint>();
