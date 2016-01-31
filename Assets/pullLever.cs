@@ -289,27 +289,36 @@ public class pullLever : MonoBehaviour {
 
     void OnMouseDown()
     {
+
+        AudioSource source = gameObject.GetComponent<AudioSource>();
+        AudioClip lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
+        AudioClip stop = Resources.Load<AudioClip>("sound/SE/stop");
         if (curState == stateTypes.READY)
         {
             coins -= 1;
             nudges = 0;
+            source.PlayOneShot(lever);
             /*for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
             {
                 activeFlags[i] = false;
             }*/
             //open shop
             StartCoroutine("spinReels");
+            
         }
         else if (curState == stateTypes.SPINNING)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[0]);
         }
         else if (curState == stateTypes.FIRSTSTOPPED)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[1]);
         }
         else if (curState == stateTypes.SECONDSTOPPED)
         {
+            source.PlayOneShot(stop);
             stopMotor(reels[2]);
         }
     }
