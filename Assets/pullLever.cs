@@ -247,23 +247,45 @@ public class pullLever : MonoBehaviour {
 
     void stopMotor(GameObject toStop)
     {
-        HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
+        reelScript script = toStop.GetComponent<reelScript>();
+        Transform transform = toStop.GetComponent<Transform>();
+        script.StopReel();
+        //the snapping code goes here now
+        float springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
+        float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
+        transform.Rotate(0,targetPosition - transform.eulerAngles.y, 0);
+        if (toStop == reels[0])
+        {
+            curState = stateTypes.FIRSTSTOPPED;
+            results[0] = (int)springSector;
+        }
+        else if(toStop == reels[1])
+        {
+            curState = stateTypes.SECONDSTOPPED;
+            results[1] = (int)springSector;
+        }
+        else if(toStop == reels[2])
+        {
+            curState = stateTypes.ALLSTOPPED;
+            results[2] = (int)springSector;
+        }
+        /*HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
         JointSpring curSpring = curHinge.spring;
         curHinge.useMotor = false;
         curSpring.spring = 0;
         curHinge.spring = curSpring;
         curState = stateTypes.PAUSE;
-        StartCoroutine("snapOnStop", toStop);
+        StartCoroutine("snapOnStop", toStop);*/
     }
 
     public IEnumerator snapOnStop(GameObject toStop)
     {
-        HingeJoint joint = toStop.GetComponent<HingeJoint>();
+        yield return new WaitForFixedUpdate();
+        /*HingeJoint joint = toStop.GetComponent<HingeJoint>();
         Transform transform = toStop.GetComponent<Transform>();
         while (joint.velocity > 0.5) yield return null;//wait until stop
         int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360) * slotDivisions);
         float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
-        //snap to targetPosition
         transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
@@ -284,7 +306,7 @@ public class pullLever : MonoBehaviour {
             minForce = minimumForce;
             minVelocity = minimumVelocity;
             results[2] = springSector;
-        }
+        }*/
     }
 
     void OnMouseDown()
@@ -327,6 +349,8 @@ public class pullLever : MonoBehaviour {
     {
         curState = stateTypes.PAUSE;//i.e. getting ready to spin
         winText.text = "";
+        reelScript curScript;
+
         HingeJoint curHinge;
         JointMotor curMotor;
         if(activeFlags[(int)modifierTypes.SLOWREELS])
@@ -350,8 +374,14 @@ public class pullLever : MonoBehaviour {
             minVelocity /= crazyFactor;
             maxVelocity *= crazyFactor;
         }
-        print("maxVelocity: " + maxVelocity);
-        for(int i = 0; i < 3; i++)//get reels up to speed
+        //only this part activates reels
+        for (int i = 0; i < 3; ++i)
+        {
+            curScript = reels[i].GetComponent<reelScript>();
+            curScript.SetVelocity(minVelocity + (Random.value * (maxVelocity - minVelocity)));
+            curScript.StartReel();
+        }
+        /*for (int i = 0; i < 3; i++)//get reels up to speed
         {
             curHinge = reels[i].GetComponent<HingeJoint>();
             curMotor = curHinge.motor;
@@ -359,8 +389,9 @@ public class pullLever : MonoBehaviour {
             curMotor.targetVelocity = minVelocity + (Random.value * (maxVelocity - minVelocity));
             curHinge.motor = curMotor;
             //randomness ensures different rates of rotation, creating a more interesting slot machine
-            curHinge.useMotor = true;
-        }
+            
+        //curHinge.useMotor = true;
+        }*/
         yield return new WaitForSeconds(0.5f);//let the motor get up to speed
         curState = stateTypes.SPINNING;
     }
