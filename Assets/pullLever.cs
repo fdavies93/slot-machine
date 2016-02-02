@@ -7,10 +7,10 @@ public class pullLever : MonoBehaviour {
     public int hasteFactor = 2;
     public int slowFactor = 2;
     public int crazyFactor = 2;
-    public int maximumForce = 10;
-    public int minimumForce = 10;
-    public int maximumVelocity = 50;
-    public int minimumVelocity = 50;
+    public int maximumForce = 100;
+    public int minimumForce = 100;
+    public int maximumVelocity = 500;
+    public int minimumVelocity = 500;
 
     //these are for actually manipulating in run time
     private int maxForce;
@@ -247,7 +247,7 @@ public class pullLever : MonoBehaviour {
 
     void stopMotor(GameObject toStop)
     {
-        reelScript script = toStop.GetComponent<reelScript>();
+        /*reelScript script = toStop.GetComponent<reelScript>();
         Transform transform = toStop.GetComponent<Transform>();
         script.StopReel();
         //the snapping code goes here now
@@ -268,24 +268,23 @@ public class pullLever : MonoBehaviour {
         {
             curState = stateTypes.ALLSTOPPED;
             results[2] = (int)springSector;
-        }
-        /*HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
+        }*/
+        HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
         JointSpring curSpring = curHinge.spring;
         curHinge.useMotor = false;
-        curSpring.spring = 0;
-        curHinge.spring = curSpring;
+        //curHinge.spring = curSpring;
         curState = stateTypes.PAUSE;
-        StartCoroutine("snapOnStop", toStop);*/
+        StartCoroutine("snapOnStop", toStop);
     }
 
     public IEnumerator snapOnStop(GameObject toStop)
     {
         yield return new WaitForFixedUpdate();
-        /*HingeJoint joint = toStop.GetComponent<HingeJoint>();
+        HingeJoint joint = toStop.GetComponent<HingeJoint>();
         Transform transform = toStop.GetComponent<Transform>();
         while (joint.velocity > 0.5) yield return null;//wait until stop
-        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360) * slotDivisions);
-        float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
+        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
+        float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
         transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
@@ -306,7 +305,7 @@ public class pullLever : MonoBehaviour {
             minForce = minimumForce;
             minVelocity = minimumVelocity;
             results[2] = springSector;
-        }*/
+        }
     }
 
     void OnMouseDown()
@@ -375,13 +374,16 @@ public class pullLever : MonoBehaviour {
             maxVelocity *= crazyFactor;
         }
         //only this part activates reels
-        for (int i = 0; i < 3; ++i)
+        
+        //TRANSLATE METHOD
+        /*for (int i = 0; i < 3; ++i)
         {
             curScript = reels[i].GetComponent<reelScript>();
             curScript.SetVelocity(minVelocity + (Random.value * (maxVelocity - minVelocity)));
             curScript.StartReel();
-        }
-        /*for (int i = 0; i < 3; i++)//get reels up to speed
+        }*/
+        //PHYSICS METHOD
+        for (int i = 0; i < 3; i++)//get reels up to speed
         {
             curHinge = reels[i].GetComponent<HingeJoint>();
             curMotor = curHinge.motor;
@@ -389,9 +391,8 @@ public class pullLever : MonoBehaviour {
             curMotor.targetVelocity = minVelocity + (Random.value * (maxVelocity - minVelocity));
             curHinge.motor = curMotor;
             //randomness ensures different rates of rotation, creating a more interesting slot machine
-            
-        //curHinge.useMotor = true;
-        }*/
+            curHinge.useMotor = true;
+        }
         yield return new WaitForSeconds(0.5f);//let the motor get up to speed
         curState = stateTypes.SPINNING;
     }
