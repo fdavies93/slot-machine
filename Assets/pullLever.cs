@@ -32,6 +32,15 @@ public class pullLever : MonoBehaviour {
     public int[] results;//gives the sectors of each reel for calculating results
     private bool[] activeFlags;
 
+    public bool cheatsOn = true;//gives unlimited nudges and coins
+
+    [System.NonSerialized]
+    public AudioSource source;
+    [System.NonSerialized]
+    public AudioClip lever;
+    [System.NonSerialized]
+    public AudioClip stop;
+
     enum resultTypes
     {
         KARATE,
@@ -159,6 +168,10 @@ public class pullLever : MonoBehaviour {
         minForce = minimumForce;
         maxVelocity = maximumVelocity;
         minVelocity = minimumVelocity;
+
+        source = gameObject.GetComponent<AudioSource>();
+        lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
+        stop = Resources.Load<AudioClip>("sound/SE/stop");
     }
 	
 	// Update is called once per frame
@@ -286,6 +299,7 @@ public class pullLever : MonoBehaviour {
         int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
         float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
         transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
+        source.PlayOneShot(stop);
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
         {
@@ -310,20 +324,15 @@ public class pullLever : MonoBehaviour {
 
     void OnMouseDown()
     {
-
-        AudioSource source = gameObject.GetComponent<AudioSource>();
-        AudioClip lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
-        AudioClip stop = Resources.Load<AudioClip>("sound/SE/stop");
         if (curState == stateTypes.READY)
         {
-            coins -= 1;
+            if(!cheatsOn) coins -= 1;
             nudges = 0;
             source.PlayOneShot(lever);
-            /*for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
             {
-                activeFlags[i] = false;
-            }*/
-            //open shop
+                if(!cheatsOn) activeFlags[i] = false;
+            }
             StartCoroutine("spinReels");
             
         }
