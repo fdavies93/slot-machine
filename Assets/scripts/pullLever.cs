@@ -163,7 +163,7 @@ public class pullLever : MonoBehaviour {
         //activeFlags[(int)modifierTypes.FASTREELS] = true;
         //activeFlags[(int)modifierTypes.THREEROWS] = true;
         //activeFlags[(int)modifierTypes.GOLDREELS] = true;
-        activeFlags[(int)modifierTypes.CRAZYREELS] = true;
+        //activeFlags[(int)modifierTypes.CRAZYREELS] = true;
         maxForce = maximumForce;
         minForce = minimumForce;
         maxVelocity = maximumVelocity;
@@ -260,28 +260,6 @@ public class pullLever : MonoBehaviour {
 
     void stopMotor(GameObject toStop)
     {
-        /*reelScript script = toStop.GetComponent<reelScript>();
-        Transform transform = toStop.GetComponent<Transform>();
-        script.StopReel();
-        //the snapping code goes here now
-        float springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
-        float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
-        transform.Rotate(0,targetPosition - transform.eulerAngles.y, 0);
-        if (toStop == reels[0])
-        {
-            curState = stateTypes.FIRSTSTOPPED;
-            results[0] = (int)springSector;
-        }
-        else if(toStop == reels[1])
-        {
-            curState = stateTypes.SECONDSTOPPED;
-            results[1] = (int)springSector;
-        }
-        else if(toStop == reels[2])
-        {
-            curState = stateTypes.ALLSTOPPED;
-            results[2] = (int)springSector;
-        }*/
         HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
         JointSpring curSpring = curHinge.spring;
         curHinge.useMotor = false;
