@@ -7,10 +7,10 @@ public class pullLever : MonoBehaviour {
     public int hasteFactor = 2;
     public int slowFactor = 2;
     public int crazyFactor = 2;
-    public int maximumForce = 10;
-    public int minimumForce = 10;
-    public int maximumVelocity = 50;
-    public int minimumVelocity = 50;
+    public int maximumForce = 100;
+    public int minimumForce = 100;
+    public int maximumVelocity = 500;
+    public int minimumVelocity = 500;
 
     //these are for actually manipulating in run time
     private int maxForce;
@@ -31,6 +31,15 @@ public class pullLever : MonoBehaviour {
     private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
     public int[] results;//gives the sectors of each reel for calculating results
     private bool[] activeFlags;
+
+    public bool cheatsOn = true;//gives unlimited nudges and coins
+
+    [System.NonSerialized]
+    public AudioSource source;
+    [System.NonSerialized]
+    public AudioClip lever;
+    [System.NonSerialized]
+    public AudioClip stop;
 
     enum resultTypes
     {
@@ -159,6 +168,10 @@ public class pullLever : MonoBehaviour {
         minForce = minimumForce;
         maxVelocity = maximumVelocity;
         minVelocity = minimumVelocity;
+
+        source = gameObject.GetComponent<AudioSource>();
+        lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
+        stop = Resources.Load<AudioClip>("sound/SE/stop");
     }
 	
 	// Update is called once per frame
@@ -247,24 +260,46 @@ public class pullLever : MonoBehaviour {
 
     void stopMotor(GameObject toStop)
     {
+        /*reelScript script = toStop.GetComponent<reelScript>();
+        Transform transform = toStop.GetComponent<Transform>();
+        script.StopReel();
+        //the snapping code goes here now
+        float springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
+        float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
+        transform.Rotate(0,targetPosition - transform.eulerAngles.y, 0);
+        if (toStop == reels[0])
+        {
+            curState = stateTypes.FIRSTSTOPPED;
+            results[0] = (int)springSector;
+        }
+        else if(toStop == reels[1])
+        {
+            curState = stateTypes.SECONDSTOPPED;
+            results[1] = (int)springSector;
+        }
+        else if(toStop == reels[2])
+        {
+            curState = stateTypes.ALLSTOPPED;
+            results[2] = (int)springSector;
+        }*/
         HingeJoint curHinge = toStop.GetComponent<HingeJoint>();
         JointSpring curSpring = curHinge.spring;
         curHinge.useMotor = false;
-        curSpring.spring = 0;
-        curHinge.spring = curSpring;
+        //curHinge.spring = curSpring;
         curState = stateTypes.PAUSE;
         StartCoroutine("snapOnStop", toStop);
     }
 
     public IEnumerator snapOnStop(GameObject toStop)
     {
+        yield return new WaitForFixedUpdate();
         HingeJoint joint = toStop.GetComponent<HingeJoint>();
         Transform transform = toStop.GetComponent<Transform>();
         while (joint.velocity > 0.5) yield return null;//wait until stop
-        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360) * slotDivisions);
-        float targetPosition = (springSector * (360 / slotDivisions)) + (180 / slotDivisions);//centre on reel
-        //snap to targetPosition
+        int springSector = Mathf.FloorToInt((transform.eulerAngles.y / 360f) * slotDivisions);
+        float targetPosition = (springSector * (360f / slotDivisions)) + (180f / slotDivisions);//centre on reel
         transform.Rotate(new Vector3(0,targetPosition - transform.eulerAngles.y, 0));
+        source.PlayOneShot(stop);
         yield return new WaitForFixedUpdate();//wait one tick for degree to auto-adjust
         if (joint == reels[0].GetComponent<HingeJoint>())
         {
@@ -289,20 +324,15 @@ public class pullLever : MonoBehaviour {
 
     void OnMouseDown()
     {
-
-        AudioSource source = gameObject.GetComponent<AudioSource>();
-        AudioClip lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
-        AudioClip stop = Resources.Load<AudioClip>("sound/SE/stop");
         if (curState == stateTypes.READY)
         {
-            coins -= 1;
+            if(!cheatsOn) coins -= 1;
             nudges = 0;
             source.PlayOneShot(lever);
-            /*for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
             {
-                activeFlags[i] = false;
-            }*/
-            //open shop
+                if(!cheatsOn) activeFlags[i] = false;
+            }
             StartCoroutine("spinReels");
             
         }
@@ -327,6 +357,8 @@ public class pullLever : MonoBehaviour {
     {
         curState = stateTypes.PAUSE;//i.e. getting ready to spin
         winText.text = "";
+        reelScript curScript;
+
         HingeJoint curHinge;
         JointMotor curMotor;
         if(activeFlags[(int)modifierTypes.SLOWREELS])
@@ -350,8 +382,17 @@ public class pullLever : MonoBehaviour {
             minVelocity /= crazyFactor;
             maxVelocity *= crazyFactor;
         }
-        print("maxVelocity: " + maxVelocity);
-        for(int i = 0; i < 3; i++)//get reels up to speed
+        //only this part activates reels
+        
+        //TRANSLATE METHOD
+        /*for (int i = 0; i < 3; ++i)
+        {
+            curScript = reels[i].GetComponent<reelScript>();
+            curScript.SetVelocity(minVelocity + (Random.value * (maxVelocity - minVelocity)));
+            curScript.StartReel();
+        }*/
+        //PHYSICS METHOD
+        for (int i = 0; i < 3; i++)//get reels up to speed
         {
             curHinge = reels[i].GetComponent<HingeJoint>();
             curMotor = curHinge.motor;
