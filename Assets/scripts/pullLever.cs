@@ -4,27 +4,29 @@ using System.Collections;
 public class pullLever : MonoBehaviour {
     //because of serialisation, basically all public variables are static
     public GameObject[] reels;
-    public int hasteFactor = 2;
-    public int slowFactor = 2;
-    public int crazyFactor = 2;
-    public int maximumForce = 100;
-    public int minimumForce = 100;
-    public int maximumVelocity = 500;
-    public int minimumVelocity = 500;
+    public float hasteFactor = 2;
+    public float slowFactor = 2;
+    public float crazyFactor = 2;
+    public float maximumForce = 100;
+    public float minimumForce = 100;
+    public float maximumVelocity = 500;
+    public float minimumVelocity = 500;
 
     //these are for actually manipulating in run time
-    private int maxForce;
-    private int minForce;
-    private int maxVelocity;
-    private int minVelocity;
+    private float maxForce;
+    private float minForce;
+    private float maxVelocity;
+    private float minVelocity;
     //all the above control randomness & feel of slot results
     public int coins = 10;
     public int nudges = 100;
     public int nudgesUsed = 0;
     public int maxNudges = 3;
+    public int curBet = 4;
     private UnityEngine.UI.Text coinText;
     private UnityEngine.UI.Text nudgeText;
     private UnityEngine.UI.Text winText;
+    private UnityEngine.UI.Text betText;
     public int slotDivisions = 16;
     private stateTypes curState = stateTypes.READY;
     private int[] resultWinnings;//how many coins you win for each resultType
@@ -76,9 +78,6 @@ public class pullLever : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        GameObject menu = GameObject.Find("menuPanel");
-        menu.SetActive(false);
-
         reels = new GameObject[3];
         reels[0] = GameObject.Find("topReel");
         reels[1] = GameObject.Find("centerReel");
@@ -156,13 +155,17 @@ public class pullLever : MonoBehaviour {
         winText = winDisplay.GetComponent<UnityEngine.UI.Text>();
         GameObject nudgeDisplay = GameObject.Find("nudgeCounter");
         nudgeText = nudgeDisplay.GetComponent<UnityEngine.UI.Text>();
+        GameObject betDisplay = GameObject.Find("BetText");
+        betText = betDisplay.GetComponent<UnityEngine.UI.Text>();
         coinText.text = "Coins: " + coins;
         winText.text = "";
         nudgeText.text = "Nudges: " + nudges;
         activeFlags = new bool[(int)modifierTypes.TYPES];
         //activeFlags[(int)modifierTypes.FASTREELS] = true;
+        //activeFlags[(int)modifierTypes.SLOWREELS] = true;
         //activeFlags[(int)modifierTypes.THREEROWS] = true;
         //activeFlags[(int)modifierTypes.GOLDREELS] = true;
+        //gold and three rows exclusive
         //activeFlags[(int)modifierTypes.CRAZYREELS] = true;
         maxForce = maximumForce;
         minForce = minimumForce;
@@ -178,6 +181,7 @@ public class pullLever : MonoBehaviour {
 	void Update () {
         coinText.text = "Coins: " + coins;
         nudgeText.text = "Nudges: " + nudges;
+        betText.text = "Bet: " + curBet;
         HingeJoint curJoint;
         bool hasStopped = true;
         if(curState == stateTypes.ALLSTOPPED)
@@ -209,7 +213,7 @@ public class pullLever : MonoBehaviour {
                     if((slotList[i, resultArray[i]] == slotList[i2, resultArray[i2]]))
                     {
                         print("win on " +i+ " and " +i2);
-                        coins += resultWinnings[(int)slotList[i, resultArray[i]]];
+                        coins += resultWinnings[(int)slotList[i, resultArray[i]]] * curBet;
                         winText.text = "WIN!";
                         nudges = 0;
                         StartCoroutine("wipeText");
@@ -224,7 +228,7 @@ public class pullLever : MonoBehaviour {
         {
             if (slotList[0, resultArray[0]] == slotList[1, resultArray[1]] && slotList[1, resultArray[1]] == slotList[2, resultArray[2]])
             {
-                coins += resultWinnings[(int)slotList[0, resultArray[0]]];
+                coins += resultWinnings[(int)slotList[0, resultArray[0]]] * curBet;
                 winText.text = "WIN!";
                 nudges = 0;
                 StartCoroutine("wipeText");
@@ -248,8 +252,6 @@ public class pullLever : MonoBehaviour {
             for(int i = 0; i < 3; ++i) tempResults[i] = (results[i] + 1) % slotDivisions;
             checkRow(tempResults);
         }
-            //print("lose...");
-        //bring up win screen on match-3
     }
 
     IEnumerator wipeText()
