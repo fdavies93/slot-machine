@@ -16,11 +16,8 @@ public class AddBet : MonoBehaviour {
 
     public void BetPlus()
     {
-
-    }
-
-    void OnMouseDown()
-    {
         script.curBet += 1;
+        return;
     }
+
 }

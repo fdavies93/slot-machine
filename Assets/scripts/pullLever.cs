@@ -22,6 +22,7 @@ public class pullLever : MonoBehaviour {
     public int nudges = 100;
     public int nudgesUsed = 0;
     public int maxNudges = 3;
+    [System.NonSerialized]
     public int curBet = 4;
     private UnityEngine.UI.Text coinText;
     private UnityEngine.UI.Text nudgeText;
@@ -157,7 +158,7 @@ public class pullLever : MonoBehaviour {
         nudgeText = nudgeDisplay.GetComponent<UnityEngine.UI.Text>();
         GameObject betDisplay = GameObject.Find("BetText");
         betText = betDisplay.GetComponent<UnityEngine.UI.Text>();
-        coinText.text = "Coins: " + coins;
+        coinText.text = ""+coins;
         winText.text = "";
         nudgeText.text = "Nudges: " + nudges;
         activeFlags = new bool[(int)modifierTypes.TYPES];
@@ -179,7 +180,7 @@ public class pullLever : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        coinText.text = "Coins: " + coins;
+        coinText.text = "" + coins;
         nudgeText.text = "Nudges: " + nudges;
         betText.text = "Bet: " + curBet;
         HingeJoint curJoint;
