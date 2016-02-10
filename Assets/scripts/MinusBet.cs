@@ -17,6 +17,6 @@ public class MinusBet : MonoBehaviour {
 
     public void BetMinus()
     {
-        script.curBet -= 1;
+        if(script.curBet > script.minBet) script.curBet -= 1;
     }
 }

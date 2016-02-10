@@ -22,6 +22,8 @@ public class pullLever : MonoBehaviour {
     public int nudges = 100;
     public int nudgesUsed = 0;
     public int maxNudges = 3;
+    public int maxBet = 10;
+    public int minBet = 1;
     [System.NonSerialized]
     public int curBet = 4;
     private UnityEngine.UI.Text coinText;
@@ -29,11 +31,19 @@ public class pullLever : MonoBehaviour {
     private UnityEngine.UI.Text winText;
     private UnityEngine.UI.Text betText;
     public int slotDivisions = 16;
-    private stateTypes curState = stateTypes.READY;
+    [System.NonSerialized]
+    public stateTypes curState = stateTypes.READY;
     private int[] resultWinnings;//how many coins you win for each resultType
     private resultTypes[,] slotList;//array of results beginning from zero and having number of entries equal to slotDivisions
     public int[] results;//gives the sectors of each reel for calculating results
     private bool[] activeFlags;
+    public int nudgePrice;
+
+    [System.NonSerialized]
+    public int[] bonusPrices;
+
+    [System.NonSerialized]
+    public GameObject[] buttons;
 
     public bool cheatsOn = true;//gives unlimited nudges and coins
 
@@ -57,17 +67,31 @@ public class pullLever : MonoBehaviour {
         TYPES
     }
 
-    enum stateTypes
+    public enum ButtonTypes
+    {
+        SLOWBUTTON,
+        FASTBUTTON,
+        GOLDREELBUTTON,
+        THREEROWBUTTON,
+        CRAZYBUTTON,
+        NUDGEBUTTON,
+        UPBETBUTTON,
+        DOWNBETBUTTON,
+        TYPES,
+    }
+
+    public enum stateTypes
     {
         READY,
         PAUSE,
         SPINNING,
         FIRSTSTOPPED,
         SECONDSTOPPED,
-        ALLSTOPPED
+        ALLSTOPPED,
+        GAMEOVER,
     }
 
-    enum modifierTypes
+    public enum modifierTypes
     {
         SLOWREELS,//reels go slower; some cost
         FASTREELS,//reels go faster; no cost
@@ -173,6 +197,23 @@ public class pullLever : MonoBehaviour {
         maxVelocity = maximumVelocity;
         minVelocity = minimumVelocity;
 
+        bonusPrices = new int[(int)modifierTypes.TYPES];
+        bonusPrices[(int)modifierTypes.FASTREELS] = 0;
+        bonusPrices[(int)modifierTypes.SLOWREELS] = 0;
+        bonusPrices[(int)modifierTypes.THREEROWS] = 0;
+        bonusPrices[(int)modifierTypes.GOLDREELS] = 0;
+        bonusPrices[(int)modifierTypes.CRAZYREELS] = 0;
+
+        buttons = new GameObject[(int)ButtonTypes.TYPES];
+        buttons[(int)ButtonTypes.CRAZYBUTTON] = GameObject.Find("CrazyButton");
+        buttons[(int)ButtonTypes.DOWNBETBUTTON] = GameObject.Find("DownBet");
+        buttons[(int)ButtonTypes.UPBETBUTTON] = GameObject.Find("UpBet");
+        buttons[(int)ButtonTypes.FASTBUTTON] = GameObject.Find("FastButton");
+        buttons[(int)ButtonTypes.GOLDREELBUTTON] = GameObject.Find("GoldButton");
+        buttons[(int)ButtonTypes.SLOWBUTTON] = GameObject.Find("SlowButton");
+        buttons[(int)ButtonTypes.THREEROWBUTTON] = GameObject.Find("3RowButton");
+        buttons[(int)ButtonTypes.NUDGEBUTTON] = GameObject.Find("UpNudge");
+
         source = gameObject.GetComponent<AudioSource>();
         lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
         stop = Resources.Load<AudioClip>("sound/SE/stop");
@@ -185,7 +226,11 @@ public class pullLever : MonoBehaviour {
         betText.text = "Bet: " + curBet;
         HingeJoint curJoint;
         bool hasStopped = true;
-        if(curState == stateTypes.ALLSTOPPED)
+        if (curState == stateTypes.READY && coins <= 0 && nudges == 0 && !cheatsOn)
+        {
+            GameOver();
+        }
+        if (curState == stateTypes.ALLSTOPPED)
         {
             for(int i = 0; i < 3; i++)
             {
@@ -200,6 +245,14 @@ public class pullLever : MonoBehaviour {
                 curState = stateTypes.READY;
             }
         }
+    }
+
+    void GameOver()
+    {
+        //do stuff
+        curState = stateTypes.GAMEOVER;
+        winText.text = "GAME OVER!";
+        //other stuff
     }
     
     void checkRow(int[] resultArray)
@@ -242,7 +295,7 @@ public class pullLever : MonoBehaviour {
         checkRow(results);
         if(activeFlags[(int)modifierTypes.THREEROWS])
         {
-            print("three rows");
+            //print("three rows");
             int[] tempResults = new int[3];
             for(int i = 0; i < 3; ++i)
             {
@@ -253,6 +306,11 @@ public class pullLever : MonoBehaviour {
             for(int i = 0; i < 3; ++i) tempResults[i] = (results[i] + 1) % slotDivisions;
             checkRow(tempResults);
         }
+    }
+
+    public void SetFlagState(int flag, bool newState)
+    {
+        activeFlags[flag] = newState;
     }
 
     IEnumerator wipeText()
@@ -299,26 +357,32 @@ public class pullLever : MonoBehaviour {
             maxVelocity = maximumVelocity;
             minForce = minimumForce;
             minVelocity = minimumVelocity;
+            foreach(GameObject button in buttons)
+            {
+                if(button != buttons[(int)ButtonTypes.NUDGEBUTTON]) button.GetComponent<UnityEngine.UI.Button>().interactable = true;
+            }
             results[2] = springSector;
         }
     }
 
     void OnMouseDown()
     {
-        if (curState == stateTypes.READY)
+        if (curState == stateTypes.READY && (curBet <= coins || cheatsOn))
         {
-            if(!cheatsOn) coins -= 1;
+            if(!cheatsOn) coins -= curBet;
             nudges = 0;
             source.PlayOneShot(lever);
-            for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            foreach(GameObject button in buttons)
             {
-                if(!cheatsOn) activeFlags[i] = false;
+                button.GetComponent<UnityEngine.UI.Button>().interactable = false;
             }
+            buttons[(int)ButtonTypes.NUDGEBUTTON].GetComponent<UnityEngine.UI.Button>().interactable = true;
             StartCoroutine("spinReels");
             
         }
         else if (curState == stateTypes.SPINNING)
         {
+            buttons[(int)ButtonTypes.NUDGEBUTTON].GetComponent<UnityEngine.UI.Button>().interactable = false;
             source.PlayOneShot(stop);
             stopMotor(reels[0]);
         }
@@ -331,6 +395,10 @@ public class pullLever : MonoBehaviour {
         {
             source.PlayOneShot(stop);
             stopMotor(reels[2]);
+            for (int i = 0; i < (int)modifierTypes.TYPES; ++i)
+            {
+                if (!cheatsOn) activeFlags[i] = false;
+            }
         }
     }
 
@@ -338,8 +406,6 @@ public class pullLever : MonoBehaviour {
     {
         curState = stateTypes.PAUSE;//i.e. getting ready to spin
         winText.text = "";
-        reelScript curScript;
-
         HingeJoint curHinge;
         JointMotor curMotor;
         if(activeFlags[(int)modifierTypes.SLOWREELS])

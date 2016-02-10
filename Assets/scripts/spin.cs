@@ -10,6 +10,6 @@ public class spin : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        gameObject.transform.Rotate(0, 2, 0);    
+        gameObject.transform.Rotate(0, 2, 0);
 	}
 }
