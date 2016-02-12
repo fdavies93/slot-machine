@@ -22,6 +22,8 @@ public class pullLever : MonoBehaviour {
     public int nudges = 100;
     public int nudgesUsed = 0;
     public int maxNudges = 3;
+
+    [System.NonSerialized]
     public int maxBet = 10;
     public int minBet = 1;
     [System.NonSerialized]
@@ -39,6 +41,11 @@ public class pullLever : MonoBehaviour {
     private bool[] activeFlags;
     public int nudgePrice;
 
+    public int fastBonus;
+
+    [System.NonSerialized]
+    public UnityEngine.UI.Text toolTip;
+
     [System.NonSerialized]
     public int[] bonusPrices;
 
@@ -53,6 +60,8 @@ public class pullLever : MonoBehaviour {
     public AudioClip lever;
     [System.NonSerialized]
     public AudioClip stop;
+    [System.NonSerialized]
+    public AudioClip victory;
 
     enum resultTypes
     {
@@ -164,14 +173,14 @@ public class pullLever : MonoBehaviour {
 
         resultWinnings = new int[(int)resultTypes.TYPES];
 
-        resultWinnings[(int)resultTypes.KARATE] = 5;
-        resultWinnings[(int)resultTypes.DARTHVADER] = 20;
-        resultWinnings[(int)resultTypes.STORMTROOPER] = 10;
-        resultWinnings[(int)resultTypes.NINJA] = 2;
-        resultWinnings[(int)resultTypes.BATMAN] = 2;
-        resultWinnings[(int)resultTypes.COWBOY] = 2;
-        resultWinnings[(int)resultTypes.PIRATE] = 2;
-        resultWinnings[(int)resultTypes.ROBIN] = 2;
+        resultWinnings[(int)resultTypes.KARATE] = 8;//1
+        resultWinnings[(int)resultTypes.DARTHVADER] = 15;//1
+        resultWinnings[(int)resultTypes.STORMTROOPER] = 4;//2
+        resultWinnings[(int)resultTypes.NINJA] = 4;//2
+        resultWinnings[(int)resultTypes.BATMAN] = 4;//2
+        resultWinnings[(int)resultTypes.COWBOY] = 4;//2
+        resultWinnings[(int)resultTypes.PIRATE] = 2;//3
+        resultWinnings[(int)resultTypes.ROBIN] = 2;//3
 
         results = new int[3];
         GameObject coinDisplay = GameObject.Find("cashCounter");
@@ -199,10 +208,10 @@ public class pullLever : MonoBehaviour {
 
         bonusPrices = new int[(int)modifierTypes.TYPES];
         bonusPrices[(int)modifierTypes.FASTREELS] = 0;
-        bonusPrices[(int)modifierTypes.SLOWREELS] = 0;
-        bonusPrices[(int)modifierTypes.THREEROWS] = 0;
-        bonusPrices[(int)modifierTypes.GOLDREELS] = 0;
-        bonusPrices[(int)modifierTypes.CRAZYREELS] = 0;
+        bonusPrices[(int)modifierTypes.SLOWREELS] = 6;
+        bonusPrices[(int)modifierTypes.THREEROWS] = 8;
+        bonusPrices[(int)modifierTypes.GOLDREELS] = 4;
+        bonusPrices[(int)modifierTypes.CRAZYREELS] = 1;
 
         buttons = new GameObject[(int)ButtonTypes.TYPES];
         buttons[(int)ButtonTypes.CRAZYBUTTON] = GameObject.Find("CrazyButton");
@@ -217,6 +226,10 @@ public class pullLever : MonoBehaviour {
         source = gameObject.GetComponent<AudioSource>();
         lever = Resources.Load<AudioClip>("sound/SE/lever");//change this to a dict / something more elegant
         stop = Resources.Load<AudioClip>("sound/SE/stop");
+
+        toolTip = GameObject.Find("ToolTipText").GetComponent<UnityEngine.UI.Text>();
+
+        victory = Resources.Load<AudioClip>("sound/SE/jackpot");
     }
 	
 	// Update is called once per frame
@@ -224,6 +237,7 @@ public class pullLever : MonoBehaviour {
         coinText.text = "" + coins;
         nudgeText.text = "Nudges: " + nudges;
         betText.text = "Bet: " + curBet;
+        maxBet = coins;
         HingeJoint curJoint;
         bool hasStopped = true;
         if (curState == stateTypes.READY && coins <= 0 && nudges == 0 && !cheatsOn)
@@ -266,10 +280,12 @@ public class pullLever : MonoBehaviour {
                 {
                     if((slotList[i, resultArray[i]] == slotList[i2, resultArray[i2]]))
                     {
-                        print("win on " +i+ " and " +i2);
                         coins += resultWinnings[(int)slotList[i, resultArray[i]]] * curBet;
-                        winText.text = "WIN!";
+                        if (activeFlags[(int)modifierTypes.FASTREELS]) coins += fastBonus; 
+                        winText.text = "WIN! x " + resultWinnings[(int)slotList[i, resultArray[i]]];
+                        if(activeFlags[(int)modifierTypes.FASTREELS]) winText.text += " + " + fastBonus;
                         nudges = 0;
+                        source.PlayOneShot(victory);
                         StartCoroutine("wipeText");
                         stop = true;
                         break;
@@ -283,8 +299,11 @@ public class pullLever : MonoBehaviour {
             if (slotList[0, resultArray[0]] == slotList[1, resultArray[1]] && slotList[1, resultArray[1]] == slotList[2, resultArray[2]])
             {
                 coins += resultWinnings[(int)slotList[0, resultArray[0]]] * curBet;
-                winText.text = "WIN!";
+                if (activeFlags[(int)modifierTypes.FASTREELS]) coins += fastBonus;
+                winText.text = "WIN! x " + resultWinnings[(int)slotList[0, resultArray[0]]];
+                if (activeFlags[(int)modifierTypes.FASTREELS]) winText.text += " + " + fastBonus;
                 nudges = 0;
+                source.PlayOneShot(victory);
                 StartCoroutine("wipeText");
             }
         }

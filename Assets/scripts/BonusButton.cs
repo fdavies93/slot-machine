@@ -7,6 +7,7 @@ public class BonusButton : MonoBehaviour {
     public pullLever.modifierTypes bonus;//sets bonus to activate
     public pullLever.modifierTypes exclude1;//ideally this would be done with an array
     public pullLever.modifierTypes exclude2;//but arrays can't be set directly via the editor, defeating the point
+    public string hoverText;
 
 	// Use this for initialization
 	void Start () {
@@ -17,6 +18,16 @@ public class BonusButton : MonoBehaviour {
 	void Update () {
 	
 	}
+
+    public void OnMouseEnter()
+    {
+        script.toolTip.text = hoverText;
+    }
+
+    public void OnMouseExit()
+    {
+        script.toolTip.text = "";
+    }
 
     public void BuyBonus()
     {
