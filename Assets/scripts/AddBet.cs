@@ -16,7 +16,7 @@ public class AddBet : MonoBehaviour {
 
     public void BetPlus()
     {
-        script.curBet += 1;
+        if(script.curBet < script.maxBet) script.curBet += 1;
         return;
     }
 
