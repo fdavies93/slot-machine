@@ -17,3 +17,50 @@ Federico Soncini – Director of Content
 DESIGN AND GAMEPLAY
 The idea of a horizontal slot machine was inspired by a minigame inside Super Mario Bros.3.
 
+![slot_pic_inspiration1](https://cloud.githubusercontent.com/assets/14871171/13149978/8f542416-d65b-11e5-9d66-8326d28a37b4.png)
+
+he idea being that the reels would divide a picture in 3 parts and the victory is achieved when the three rows match and recompose the image. The minigame is at minute (4:12) in the video.
+<iframe width="420" height="315" src="https://www.youtube.com/embed/V9dreY0rUXY" frameborder="0" allowfullscreen></iframe>
+
+On Yuka’s suggestion we decided to make it Lego Themed, so we selected eight characters that could be split into three horizontal reels. The slot machine was also created in 3D Lego style, in an arcade shape. 
+
+We decided that there would be a single lever, that would start the spinning reels and then stop the single reels. 
+We created an in-game store that would allow the player to use nudges to move the reels by one slot. The player gets three nudges at each spin, but each nudge detracts from the victory sum.
+There is also a priority among characters. With the Lego Darth Vader a player can double his bet. 
+A strong part of the design is the 8-bit music, which is specifically designed to reflect that mid 80’s Japanese style gaming experience.
+On the right side of screen, we created a ministore. The player has different options to maximize the chances of victory or to increase the sum. We maintained an essential and symbolic design for the mini store. 
+The fast forward button doesn’t cost any coins but speeds up the reels, making victories more difficult and gives the player a bonus in case of jackpot.
+The slow reel has a cost of 6 coins and decreases the spinning velocity, making it easier to reach a jackpot.
+The “crazy” reel, on the other hand, randomises reel speeds, it has a cost of [x] coins and could either be an advantage or a disadvantage for the player, depending on whether the outcome of the spinning reel is faster or slower.
+The “golden reel” has a cost of [x] and enables the player to win by matching only two reels. 
+Finally the “3 rows” button, which has a cost of [x] coins, will allow the player to win using by matching a figure across all the three visible columns. 
+The options in the mini-store are all mutual exclusive and are valid for only a single spin. To provide players with a degree of guidance, when one hovers over a button the cost/effect mechanics are explained and displayed on the row above the slot machine reels, which contains minimal written instructions.
+The left column displays the total amount coins, the bets (which can be increased or decreased with + and – buttons), and the nudges. Nudges help move the reel by one slot, the cost [x] coins. The minimum bet is [x] coins.
+
+IMPLEMENTATION
+
+Frank built a basic program for the slot machine in Unity, brought in basic art assets created by the artists theam (reels + machine), had changes made to the art based on technical requirements 
+The majority of the C# scripts are included in the pullLever.cs file, where all the variables and UI elements are initialized.
+The sprites (KARATE, DARTHVADER, STORMTROOPER, NINJA, BATMAN, COWBOY, PIRATE, ROBIN [TYPES/]) are included in an enum container named resultTypes; other enum contain stateTypes (such as READY, PAUSE, SPINNING, etc…) and modifierTypes (such as SLOWREELS, FASTREELS, etc…)
+
+During the implementation some difficulties were experienced in calculating the angles based on a combination of unity's functionality and misalignment of hinge joints, which delayed the project by some time.
+Working with the design lead, Frank implemented the system for taking the order of parts on each reel and translating it into a prize value, also nudges and game state variables, implemented various modifiers and bonuses (speed up, slow down, etc.), implemented bets and variable reward winnings, combined in further art assets in group session, coded and designed UI and shop interface, finalised UI and integrated with game state, brought in art assets and finalised with bug testing, fixes and fine tuning.
+
+ARTWORK
+
+The team of Artists, Emanuel and Yuka, work closely together in creating the artwork for the slot machine.
+They designed, modelled and textured the slot machine to look like it was completely built from Lego. Making sure its construction followed the rules of Lego in terms of the sections having the correct proportions and clipping together from the correct sides. The artists also made sure that any slanting angles where made from steps of Lego rather than a straight line and in some case where there is a smooth slant, making sure that the pieces for this exist and that this machine could actually be replicated using real Lego.
+
+Making sure the cylindrical Lego clips were positioned correctly and in the right proportion was quite time consuming but I feel the panels, especially with the lighting hitting off it creates a nice convincing Lego effect.
+I made sure to leave sufficient space on the slot-machine front for the programmers to utilize for UI elements and scores, and realistic cavity proportions for the slot-machine spinning wheels to sit.
+Also making sure the texture followed the correct proportions of yellow and keeping with the strong vivid colours that Lego pieces use. I also used a normal map to project the logo detail which sits on every Lego cylindrical clip, however bearing in mind this might have Copyright issues and can be easily removed or replaced for all clips my making a single edit to the normal map. There is actually a lot more detail, in the slot-machine that does not make it into the camera frame such as arrows formed from protruding Lego and coin deposit near the bottom.
+We feel the modelling more than sufficiently serves its purpose within the game and it succeeds in being immediately recognizable as having been built from Lego.
+
+Yuka 
+Calculated the proper size of the reel that would suit to the textures we would use, was  [Decided the number of the items (characters) and the order for each reel.], made 3 textures for each reel.  Unlike independent items like cherry, BAR, bananas, it needed extremely precise UV adjustment of each parts (head, body, legs), because it's going to make one picture from 3 results of the reels.
+-Made Lego characters for some scene. Modelled coin
+
+Yuka
+Particular attention was paid to the sound design. The team felt that in order to convey the aesthetics of an old fashioned, lego style game an 8 bit sound was going to be the best choice. There are currently three different tunes – an intro/outro song, plus a victory sound bite. They sources were found in the free sound library http://ymck.net/dolwnload/magical8bitplug/index.html, then 2 of the existing tunes were arranged into 8 bit game music and exported by Logic X.
+
+
