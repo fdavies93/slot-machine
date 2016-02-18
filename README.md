@@ -19,8 +19,7 @@ The idea of a horizontal slot machine was inspired by a minigame inside Super Ma
 
 ![slot_pic_inspiration1](https://cloud.githubusercontent.com/assets/14871171/13149978/8f542416-d65b-11e5-9d66-8326d28a37b4.png)
 
-he idea being that the reels would divide a picture in 3 parts and the victory is achieved when the three rows match and recompose the image. The minigame is at minute (4:12) in the video.
-<iframe width="420" height="315" src="https://www.youtube.com/embed/V9dreY0rUXY" frameborder="0" allowfullscreen></iframe>
+The idea being that the reels would divide a picture in 3 parts and the victory is achieved when the three match and recompose the image. Link to game inspiration in https://www.youtube.com/watch?v=V9dreY0rUXY at (4:12).
 
 On Yuka’s suggestion we decided to make it Lego Themed, so we selected eight characters that could be split into three horizontal reels. The slot machine was also created in 3D Lego style, in an arcade shape. 
 
