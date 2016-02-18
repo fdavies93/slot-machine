@@ -1,1 +1,1 @@
-https:/raw.github.com/fsoncini/slot-machine/master/pics/slot1.png?raw=true"Lego themed Slot Machine"
+https://cloud.githubusercontent.com/assets/14871171/13149600/ee6f1df4-d659-11e5-9288-6f6329003c25.png
