@@ -1,2 +1,1 @@
-
-![Alt text](https://github.com/fsoncini/slot-machine/master/pics/slot1.png?raw=true"Lego themed Slot Machine")
+https:/raw.github.com/fsoncini/slot-machine/master/pics/slot1.png?raw=true"Lego themed Slot Machine"
