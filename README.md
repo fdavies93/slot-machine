@@ -6,13 +6,17 @@ Intro to Programming, Assignment #2.
 
 Team: 
 Frank Davies – Lead Programmer;
+
 Emanuel Francis – Artist;
+
 Yuka Okabe – Artist;
+
 Federico Soncini – Director of Content.
 
 
 
 DESIGN AND GAMEPLAY
+
 The idea of a horizontal slot machine was inspired by a minigame inside Super Mario Bros.3.
 
 ![slot_pic_inspiration1](https://cloud.githubusercontent.com/assets/14871171/13149978/8f542416-d65b-11e5-9d66-8326d28a37b4.png)
