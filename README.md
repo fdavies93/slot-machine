@@ -5,9 +5,9 @@ Intro to Programming, Assignment #2.
 “LEGO SLOT MACHINE”
 
 Team: 
-Frank Davies – Lead Programmer
-Emanuel Francis – Artist
-Yuka Okabe – Artist
+Frank Davies – Lead Programmer;
+Emanuel Francis – Artist;
+Yuka Okabe – Artist;
 Federico Soncini – Director of Content
 
 
