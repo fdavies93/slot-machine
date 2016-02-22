@@ -8,7 +8,7 @@ Team:
 Frank Davies – Lead Programmer;
 Emanuel Francis – Artist;
 Yuka Okabe – Artist;
-Federico Soncini – Director of Content
+Federico Soncini – Director of Content.
 
 
 
@@ -22,7 +22,7 @@ The idea being that the reels would divide a picture in 3 parts and the victory 
 On Yuka’s suggestion we decided to make it Lego Themed, so we selected eight characters that could be split into three horizontal reels. The slot machine was also created in 3D Lego style, in an arcade shape. 
 
 We decided that there would be a single lever, that would start the spinning reels and then stop the single reels. 
-We created an in-game store that would allow the player to use nudges to move the reels by one slot. The player gets three nudges at each spin, but each nudge detracts from the victory sum.
+We created an in-game store that would allow the player to use nudges to move the reels by one slot. The player gets three nudges at each spin, but each nudge detracts from the victory total sum.
 There is also a priority among characters. With the Lego Darth Vader a player can win more. 
 A strong part of the design is the 8-bit music, which is specifically designed to reflect that mid 80’s Japanese style gaming experience.
 On the right side of screen, we created a ministore. The player has different options to maximize the chances of victory or to increase the sum. We maintained an essential and symbolic design for the mini store. 
