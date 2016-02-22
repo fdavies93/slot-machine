@@ -61,4 +61,5 @@ The artists also calculated the proper size of the reel that would suit to the t
 
 Particular attention was paid to the sound design. The team felt that in order to convey the aesthetics of an old fashioned, lego style game an 8 bit sound was going to be the best choice. There are currently three different tunes – an intro/outro song, plus a victory sound bite. They sources were found in the free sound library http://ymck.net/dolwnload/magical8bitplug/index.html, then 2 of the existing tunes were arranged into 8 bit game music and exported by Logic X.
 
+YouTube link: https://youtu.be/fQF1HzbrjFg
 
